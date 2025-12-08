@@ -192,14 +192,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.5019608)
 theme_override_font_sizes/font_size = 12
 text = "Source"
-uri = "https://github.com/IMP1"
+uri = "https://github.com/IMP1/godot-resource-manager"
 
 [node name="Help" type="LinkButton" parent="EditorContainer/VBoxContainer/Footer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.5019608)
 theme_override_font_sizes/font_size = 12
 text = "Help"
-uri = "https://github.com/IMP1"
+uri = "https://github.com/IMP1/godot-resource-manager?tab=readme-ov-file#godot-resource-manager-v010"
 
 [node name="VSeparator" type="VSeparator" parent="EditorContainer/VBoxContainer/Footer"]
 layout_mode = 2
