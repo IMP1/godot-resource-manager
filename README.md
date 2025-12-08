@@ -63,5 +63,3 @@
   - Pressing <kbd>Enter</kbd> to add new resource
   - Saving in a new thread
   - Shortcuts (that are compatible with other Godot Editor shortcuts, and can be set in a settings somewhere)
-  - Plugin Settings <!-- https://forum.godotengine.org/t/is-there-a-convention-for-projectsettings-created-by-a-plugin/54031 -->
-  - Setting for which folders to search/exclude when searching for resources

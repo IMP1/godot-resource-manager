@@ -102,6 +102,9 @@ func _get_dirs(root:String="res://") -> Array[String]:
 		for subdir in DirAccess.get_directories_at(root):
 			if subdir.begins_with("."):
 				continue
+			var path := root + ("/" if not root.ends_with("/") else "") + subdir
+			if ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_IGNORED_DIRS, []).has(path):
+				continue
 			dirs.append_array(_get_dirs(root + "/" + subdir))
 		return dirs
 
@@ -130,6 +133,10 @@ func reload(resource_template: Script) -> void:
 	for dir in _get_dirs():
 		_new_resource_folder.add_item(dir)
 		for file in DirAccess.get_files_at(dir):
+			if file.begins_with("."):
+				continue
+			if not ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ALLOWED_FILETYPES, []).has(file.get_extension()):
+				continue
 			_load_resource(dir + "/" + file)
 
 
@@ -467,6 +474,7 @@ func manual_edit(resource: Resource) -> void:
 
 func _load_resource(filepath: String) -> void:
 	var resource := load(filepath)
+	print(filepath)
 	if not is_type(_resource_template, resource.get_script()):
 		return
 	var row := HBoxContainer.new()
