@@ -52,20 +52,20 @@ func _ready() -> void:
 	_title.text = _resource_type_selector.get_item_text(_resource_type_selector.selected).capitalize()
 	_content_scroll.get_h_scroll_bar().share(_header_scroll.get_h_scroll_bar())
 	_content_scroll.get_v_scroll_bar().share(_item_action_scroll.get_v_scroll_bar())
-	if Engine.is_editor_hint():
-		_save_btn.icon = EditorInterface.get_editor_theme().get_icon("Save", "EditorIcons")
-		_reload.icon = EditorInterface.get_editor_theme().get_icon("Reload", "EditorIcons")
-		_undo_btn.icon = EditorInterface.get_editor_theme().get_icon("UndoRedo", "EditorIcons")
-		_redo_btn.icon = EditorInterface.get_editor_theme().get_icon("Redo", "EditorIcons")
-		_add_row.icon = EditorInterface.get_editor_theme().get_icon("Add", "EditorIcons")
+	_save_btn.icon = EditorInterface.get_editor_theme().get_icon("Save", "EditorIcons")
+	_reload.icon = EditorInterface.get_editor_theme().get_icon("Reload", "EditorIcons")
+	_undo_btn.icon = EditorInterface.get_editor_theme().get_icon("UndoRedo", "EditorIcons")
+	_redo_btn.icon = EditorInterface.get_editor_theme().get_icon("Redo", "EditorIcons")
+	_add_row.icon = EditorInterface.get_editor_theme().get_icon("Add", "EditorIcons")
 	_save_btn.pressed.connect(_save_all)
 	_undo_btn.pressed.connect(_undo)
 	_redo_btn.pressed.connect(_redo)
-	var dirs: Array[String] = ["res://data/fish", "res://data/rods"]
 	_reload.pressed.connect(func() -> void:
+		print(_get_dirs())
+		if _resource_type_selector.selected == -1:
+			return
 		var script: Script = load(_resource_types[_resource_type_selector.selected][&"path"])
-		print(script)
-		reload(script, dirs))
+		reload(script))
 	_undo_redo = UndoRedo.new() # TODO: Use this, SEE: https://docs.godotengine.org/en/stable/classes/class_undoredo.html
 	# TODO: Maybe use the EditorUndoRedoManager?
 	#       https://docs.godotengine.org/en/stable/classes/class_editorundoredomanager.html#class-editorundoredomanager
@@ -94,8 +94,19 @@ func _validate_filename(filepath: String) -> void:
 	_new_resource_confirm.disabled = not valid_filename
 
 
-func reload(resource_template: Script, dirs: Array[String]) -> void:
-	# TODO: Think about recursive search for resource files?
+func _get_dirs(root:String="res://") -> Array[String]:
+	if root == "res://" and ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ONLY_INCLUDE_ALLOWED_DIRS, false):
+		return (ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ALLOWED_DIRS, []))
+	else:
+		var dirs: Array[String] = [root]
+		for subdir in DirAccess.get_directories_at(root):
+			if subdir.begins_with("."):
+				continue
+			dirs.append_array(_get_dirs(root + "/" + subdir))
+		return dirs
+
+
+func reload(resource_template: Script) -> void:
 	_resource_template = resource_template
 	for child in _column_headers.get_children():
 		_column_headers.remove_child(child)
@@ -116,7 +127,7 @@ func reload(resource_template: Script, dirs: Array[String]) -> void:
 	var right_side_buffer := Control.new()
 	right_side_buffer.custom_minimum_size.x = ROW_END_PADDING
 	_column_headers.add_child(right_side_buffer)
-	for dir in dirs:
+	for dir in _get_dirs():
 		_new_resource_folder.add_item(dir)
 		for file in DirAccess.get_files_at(dir):
 			_load_resource(dir + "/" + file)
@@ -162,7 +173,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			else:
 				var input := SpinBox.new()
 				input.value = value as float
-				# TODO: Check for prefix or suffix
+				# TODO: Check for prefix/suffix and min/max
 				input.custom_minimum_size.x = _get_column_width(property)
 				input.value_changed.connect(func(value: float) -> void:
 					resource.set(property[&"name"], value))
@@ -485,10 +496,9 @@ func _load_resource(filepath: String) -> void:
 	delete_btn.pressed.connect(_delete_resource.bind(resource, filepath))
 	duplicate_btn.pressed.connect(_duplicate_resource.bind(resource))
 	manual_edit_btn.pressed.connect(manual_edit.bind(resource))
-	if Engine.is_editor_hint():
-		delete_btn.icon = EditorInterface.get_editor_theme().get_icon("Remove", "EditorIcons")
-		duplicate_btn.icon = EditorInterface.get_editor_theme().get_icon("Duplicate", "EditorIcons")
-		manual_edit_btn.icon = EditorInterface.get_editor_theme().get_icon("Edit", "EditorIcons")
+	delete_btn.icon = EditorInterface.get_editor_theme().get_icon("Remove", "EditorIcons")
+	duplicate_btn.icon = EditorInterface.get_editor_theme().get_icon("Duplicate", "EditorIcons")
+	manual_edit_btn.icon = EditorInterface.get_editor_theme().get_icon("Edit", "EditorIcons")
 	item_actions.add_child(duplicate_btn)
 	item_actions.add_child(manual_edit_btn)
 	item_actions.add_child(delete_btn)

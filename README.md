@@ -1,8 +1,6 @@
 # Godot Resource Manager v0.1.0
 
-
-
-![An example list of Godot Resources in the Resource Manager](screenshot.png)
+![An example list of Godot Resources in the Resource Manager](images/screenshot.png)
 
 ## Supported Variant Types
 
@@ -53,7 +51,8 @@
 
 ## Known Bugs
 
-  - Duplicate/Delete icons get out of sync with the rows of the resources they're for.
+  - Duplicate/Delete icons get out of sync with the rows of the resources they're for
+  - Resources that inherit from other custom Resources aren't recognised by the plugin
 
 ## Roadmap
 
