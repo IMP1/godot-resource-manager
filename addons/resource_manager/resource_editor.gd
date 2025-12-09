@@ -34,16 +34,30 @@ var _undo_redo: UndoRedo
 @onready var _save_progress := %SavingProgress as ProgressBar
 
 
+func _exit_tree() -> void:
+	EditorInterface.get_inspector().property_edited.disconnect(_inspector_resource_edited)
+	# TODO: Disconnect all the anonymous lambda connections to Resource.changed that each input 
+	#       control node sets up.
+
+
+func _inspector_resource_edited(property: String) -> void:
+	if not _loaded_resources.has(EditorInterface.get_inspector().get_edited_object()):
+		return
+	(EditorInterface.get_inspector().get_edited_object() as Resource).changed.emit()
+
+
 func _ready() -> void:
 	# BUG: This works, but throws GDScript errors:
 	#      modules/gdscript/gdscript_lambda_callable.cpp:126 - GDScript bug (please report): Invalid value of lambda capture at index 0.
 	#      core/object/object.cpp:1310 - Error calling from signal 'changed' to callable: 'GDScript::<anonymous lambda>': Method not found.
 	#      modules/gdscript/gdscript_lambda_callable.cpp:110 - Lambda capture at index 2 was freed. Passed "null" instead.
 	#      res://addons/resource_manager/resource_editor.gd:197 - Cannot call method 'set_value_no_signal' on a null value.
-	#EditorInterface.get_inspector().property_edited.connect(func(property: String) -> void:
-		#if not _loaded_resources.has(EditorInterface.get_inspector().get_edited_object()):
-			#return
-		#(EditorInterface.get_inspector().get_edited_object() as Resource).changed.emit())
+	#
+	#      On further investigation, it seems this might have something to do with the callables not 
+	#      being disconnected when the plugin is unloaded, so maybe trying to call anonymous lambdas
+	#      that no longer exist. Maybe trying to disconnect them when the plugin is unloaded will 
+	#      work?
+	EditorInterface.get_inspector().property_edited.connect(_inspector_resource_edited)
 	_new_resource_popup.hide()
 	_resource_types.clear()
 	_new_resource_cancel.pressed.connect(_new_resource_popup.hide)
@@ -169,7 +183,10 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			input.toggled.connect(func(value: bool) -> void:
 				resource.set(property[&"name"], value))
 			resource.changed.connect(func() -> void:
-				input.set_pressed_no_signal(resource.get(property[&"name"])))
+				print("hi")
+				input.set_pressed_no_signal(resource.get(property[&"name"]))
+				#input.set_pressed_no_signal(resource.get.bind(property[&"name"]).call())
+				print("ho"))
 			return input
 		TYPE_INT, TYPE_FLOAT:
 			# TODO: Bitflags

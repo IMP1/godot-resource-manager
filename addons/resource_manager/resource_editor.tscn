@@ -5,7 +5,7 @@
 [sub_resource type="Theme" id="Theme_gqjks"]
 default_font_size = 12
 
-[sub_resource type="DPITexture" id="DPITexture_df8xy"]
+[sub_resource type="DPITexture" id="DPITexture_4l5jb"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#e0e0e0\" d=\"M5 8a4 4 0 1 1 4 4v2a6 6 0 1 0-6-6H1l3 4 3-4z\"/></svg>
 "
 color_map = {
@@ -16,7 +16,7 @@ Color(1, 0.8666667, 0.39607844, 1): Color(1, 0.87, 0.4, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_df8xy"]
 
-[sub_resource type="DPITexture" id="DPITexture_en5mg"]
+[sub_resource type="DPITexture" id="DPITexture_jn3k6"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#e0e0e0\" d=\"M8 9H1V2l2 2a3.875 5 30 0 1 9 11 3.5 5 10 0 0-6-8z\"/></svg>
 "
 color_map = {
@@ -25,7 +25,7 @@ Color(0.37254903, 1, 0.5921569, 1): Color(0.45, 0.95, 0.5, 1),
 Color(1, 0.8666667, 0.39607844, 1): Color(1, 0.87, 0.4, 1)
 }
 
-[sub_resource type="DPITexture" id="DPITexture_h8vll"]
+[sub_resource type="DPITexture" id="DPITexture_gqvp5"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#e0e0e0\" d=\"M8 9h7V2l-2 2a6.927 8.938-30 0 0-9 11 4.364 6.234-10 0 1 6-8z\"/></svg>
 "
 color_map = {
@@ -34,7 +34,7 @@ Color(0.37254903, 1, 0.5921569, 1): Color(0.45, 0.95, 0.5, 1),
 Color(1, 0.8666667, 0.39607844, 1): Color(1, 0.87, 0.4, 1)
 }
 
-[sub_resource type="DPITexture" id="DPITexture_wil4c"]
+[sub_resource type="DPITexture" id="DPITexture_3nm0r"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#e0e0e0\" d=\"M3 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4l-3-3h-1v6H3zm1 0v5h3V1zm4 8a1 1 0 0 1 0 4 1 1 0 0 1 0-4z\"/></svg>
 "
 color_map = {
@@ -43,7 +43,7 @@ Color(0.37254903, 1, 0.5921569, 1): Color(0.45, 0.95, 0.5, 1),
 Color(1, 0.8666667, 0.39607844, 1): Color(1, 0.87, 0.4, 1)
 }
 
-[sub_resource type="DPITexture" id="DPITexture_ey1v7"]
+[sub_resource type="DPITexture" id="DPITexture_cu2hq"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#e0e0e0\" d=\"m7 1v6h-6v2h6v6h2v-6h6v-2h-6v-6z\"/></svg>
 "
 color_map = {
@@ -83,12 +83,16 @@ layout_mode = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(192, 0)
 layout_mode = 2
+selected = 0
+item_count = 1
+popup/item_0/text = "FooBar"
+popup/item_0/id = 0
 
 [node name="Reload" type="Button" parent="EditorContainer/VBoxContainer/TopActions"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reload"
-icon = SubResource("DPITexture_df8xy")
+icon = SubResource("DPITexture_4l5jb")
 
 [node name="VSeparator" type="VSeparator" parent="EditorContainer/VBoxContainer/TopActions"]
 layout_mode = 2
@@ -100,20 +104,20 @@ unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Undo"
 disabled = true
-icon = SubResource("DPITexture_en5mg")
+icon = SubResource("DPITexture_jn3k6")
 
 [node name="Redo" type="Button" parent="EditorContainer/VBoxContainer/TopActions"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Redo"
 disabled = true
-icon = SubResource("DPITexture_h8vll")
+icon = SubResource("DPITexture_gqvp5")
 
 [node name="Save" type="Button" parent="EditorContainer/VBoxContainer/TopActions"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Save"
-icon = SubResource("DPITexture_wil4c")
+icon = SubResource("DPITexture_3nm0r")
 
 [node name="HSeparator" type="HSeparator" parent="EditorContainer/VBoxContainer"]
 layout_mode = 2
@@ -123,7 +127,7 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeaderLarge"
-text = "Fish Data"
+text = "Foo Bar"
 horizontal_alignment = 1
 
 [node name="Main" type="GridContainer" parent="EditorContainer/VBoxContainer"]
@@ -180,7 +184,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Add New Resource"
-icon = SubResource("DPITexture_ey1v7")
+icon = SubResource("DPITexture_cu2hq")
 
 [node name="Footer" type="HBoxContainer" parent="EditorContainer/VBoxContainer"]
 layout_mode = 2
