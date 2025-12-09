@@ -9,6 +9,7 @@ var _resource_template: Script
 var _loaded_resources: Array[Resource]
 var _is_resource_just_created: bool = false
 var _undo_redo: UndoRedo
+var _resource_update_callbacks: Dictionary[Resource, Array]
 
 @onready var _column_headers := %ColumnHeaders as BoxContainer
 @onready var _item_actions := %ItemActions as BoxContainer
@@ -36,8 +37,15 @@ var _undo_redo: UndoRedo
 
 func _exit_tree() -> void:
 	EditorInterface.get_inspector().property_edited.disconnect(_inspector_resource_edited)
-	# TODO: Disconnect all the anonymous lambda connections to Resource.changed that each input 
-	#       control node sets up.
+	for resource in _resource_update_callbacks:
+		for callback: Callable in _resource_update_callbacks[resource]:
+			resource.changed.disconnect(callback)
+
+
+func _add_resource_update_callback(resource: Resource, callback: Callable) -> void:
+	if not _resource_update_callbacks.has(resource):
+		_resource_update_callbacks[resource] = []
+	_resource_update_callbacks[resource].append(callback)
 
 
 func _inspector_resource_edited(property: String) -> void:
@@ -182,15 +190,41 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			input.custom_minimum_size.x = _get_column_width(property)
 			input.toggled.connect(func(value: bool) -> void:
 				resource.set(property[&"name"], value))
-			resource.changed.connect(func() -> void:
-				print("hi")
+			var update_function := func() -> void:
 				input.set_pressed_no_signal(resource.get(property[&"name"]))
-				#input.set_pressed_no_signal(resource.get.bind(property[&"name"]).call())
-				print("ho"))
+			_add_resource_update_callback(resource, update_function)
+			resource.changed.connect(update_function)
 			return input
 		TYPE_INT, TYPE_FLOAT:
-			# TODO: Bitflags
-			if property[&"hint"] == PROPERTY_HINT_ENUM:
+			# TODO: Navigation/Collision/etc. Layers
+			if property[&"hint"] == PROPERTY_HINT_FLAGS:
+				print(property)
+				var names: PackedStringArray = property[&"hint_string"].split(",")
+				var input := HBoxContainer.new()
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.add_theme_constant_override(&"separation", 1)
+				for i in names.size():
+					var bit_input := Button.new()
+					bit_input.toggle_mode = true
+					bit_input.text = names[i]
+					bit_input.tooltip_text = "%s flag\nBit %d, value %d" % [names[i], i, pow(2, i)]
+					bit_input.button_pressed = ((value as int) & (1 << i)) > 0
+					bit_input.toggled.connect(func(on: bool) -> void:
+						var old_value := resource.get(property[&"name"])
+						if on:
+							old_value = old_value | (1 << i)
+						else:
+							old_value = old_value & ~(1 << i)
+						resource.set(property[&"name"], old_value))
+					input.add_child(bit_input)
+				var update_function := func() -> void:
+					for i in input.get_child_count():
+						var child := input.get_child(i) as Button
+						child.button_pressed = resource.get(property[&"name"]) & (1 << i) > 0
+				_add_resource_update_callback(resource, update_function)
+				resource.changed.connect(update_function)
+				return input
+			elif property[&"hint"] == PROPERTY_HINT_ENUM:
 				var names: Array[String] = []
 				var values: Array[int] = []
 				var input := OptionButton.new()
@@ -204,8 +238,10 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				input.selected = values.find(value as int)
 				input.item_selected.connect(func(index: int) -> void:
 					resource.set(property[&"name"], values.find(index)))
-				resource.changed.connect(func() -> void:
-					input.selected = values.find(resource.get(property[&"name"])))
+				var update_function := func() -> void:
+					input.selected = values.find(resource.get(property[&"name"]))
+				_add_resource_update_callback(resource, update_function)
+				resource.changed.connect(update_function)
 				return input
 			else:
 				var input := SpinBox.new()
@@ -214,8 +250,10 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				input.custom_minimum_size.x = _get_column_width(property)
 				input.value_changed.connect(func(value: float) -> void:
 					resource.set(property[&"name"], value))
-				resource.changed.connect(func() -> void:
-					input.set_value_no_signal(resource.get(property[&"name"])))
+				var update_function := func() -> void:
+					input.set_value_no_signal(resource.get(property[&"name"]))
+				_add_resource_update_callback(resource, update_function)
+				resource.changed.connect(update_function)
 				return input
 		TYPE_STRING, TYPE_STRING_NAME:
 			var input := LineEdit.new()
@@ -224,8 +262,10 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			input.placeholder_text = property[&"name"]
 			input.text_changed.connect(func(value: String) -> void:
 				resource.set(property[&"name"], value))
-			resource.changed.connect(func() -> void:
-				input.text = resource.get(property[&"name"]))
+			var update_function := func() -> void:
+				input.text = resource.get(property[&"name"])
+			_add_resource_update_callback(resource, update_function)
+			resource.changed.connect(update_function)
 			return input
 		TYPE_COLOR:
 			var input := ColorPickerButton.new()
@@ -234,8 +274,10 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			input.text = property[&"name"]
 			input.color_changed.connect(func(value: Color) -> void:
 				resource.set(property[&"name"], value))
-			resource.changed.connect(func() -> void:
-				input.color = resource.get(property[&"name"]))
+			var update_function := func() -> void:
+				input.color = resource.get(property[&"name"])
+			_add_resource_update_callback(resource, update_function)
+			resource.changed.connect(update_function)
 			return input
 		TYPE_VECTOR2, TYPE_VECTOR2I:
 			var input := HBoxContainer.new()
@@ -252,9 +294,11 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			y_input.value = (value as Vector2).y
 			y_input.value_changed.connect(func(value: float) -> void:
 				resource.get(property[&"name"]).y = value)
-			resource.changed.connect(func() -> void:
+			var update_function := func() -> void:
 				x_input.value = resource.get(property[&"name"]).x
-				y_input.value = resource.get(property[&"name"]).y)
+				y_input.value = resource.get(property[&"name"]).y
+			_add_resource_update_callback(resource, update_function)
+			resource.changed.connect(update_function)
 			input.add_child(x_input)
 			input.add_child(y_input)
 			return input
@@ -279,10 +323,12 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			z_input.value = (value as Vector3).z
 			z_input.value_changed.connect(func(value: float) -> void:
 				resource.get(property[&"name"]).z = value)
-			resource.changed.connect(func() -> void:
+			var update_function := func() -> void:
 				x_input.value = resource.get(property[&"name"]).x
 				y_input.value = resource.get(property[&"name"]).y
-				z_input.value = resource.get(property[&"name"]).z)
+				z_input.value = resource.get(property[&"name"]).z
+			_add_resource_update_callback(resource, update_function)
+			resource.changed.connect(update_function)
 			input.add_child(x_input)
 			input.add_child(y_input)
 			input.add_child(z_input)
@@ -314,11 +360,13 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			w_input.value = (value as Vector4).w
 			w_input.value_changed.connect(func(value: float) -> void:
 				resource.get(property[&"name"]).w = value)
-			resource.changed.connect(func() -> void:
+			var update_function := func() -> void:
 				x_input.value = resource.get(property[&"name"]).x
 				y_input.value = resource.get(property[&"name"]).y
 				z_input.value = resource.get(property[&"name"]).z
-				w_input.value = resource.get(property[&"name"]).w)
+				w_input.value = resource.get(property[&"name"]).w
+			_add_resource_update_callback(resource, update_function)
+			resource.changed.connect(update_function)
 			input.add_child(x_input)
 			input.add_child(y_input)
 			input.add_child(z_input)

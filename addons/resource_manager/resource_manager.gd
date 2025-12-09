@@ -6,6 +6,13 @@ const SETTINGS_ONLY_INCLUDE_ALLOWED_DIRS := "addons/resource_manager/config/only
 const SETTINGS_ALLOWED_DIRS := "addons/resource_manager/config/allowed_directories"
 const SETTINGS_IGNORED_DIRS := "addons/resource_manager/config/ignored_directories"
 const SETTINGS_ALLOWED_FILETYPES := "addons/resource_manager/config/allowed_filetypes"
+const SETTINGS_FLAG_FIELD_ABBREVIATION := "addons/resource_manager/config/flag_field_abbreviation"
+
+enum FlagAbbreviations {
+	NONE,
+	INITIALS,
+	BIT_POSITIONS,
+}
 
 var dock: Control
 
@@ -30,6 +37,17 @@ func _setup_settings() -> void:
 	if not ProjectSettings.has_setting(SETTINGS_ALLOWED_FILETYPES):
 		ProjectSettings.set_setting(SETTINGS_ALLOWED_FILETYPES, ["tres", "res"])
 	ProjectSettings.set_initial_value(SETTINGS_ALLOWED_FILETYPES, ["tres", "res"])
+	# TODO: Make this an Enum
+	#       https://docs.godotengine.org/en/stable/classes/class_projectsettings.html#class-projectsettings-method-add-property-info
+	if not ProjectSettings.has_setting(SETTINGS_FLAG_FIELD_ABBREVIATION):
+		ProjectSettings.set_setting(SETTINGS_FLAG_FIELD_ABBREVIATION, FlagAbbreviations.NONE)
+		ProjectSettings.add_property_info({
+			"name": SETTINGS_FLAG_FIELD_ABBREVIATION,
+			"type": TYPE_INT,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": ",".join(PackedStringArray(FlagAbbreviations.keys().map(func(key: String) -> String: return key.capitalize())))
+		})
+	ProjectSettings.set_initial_value(SETTINGS_FLAG_FIELD_ABBREVIATION, FlagAbbreviations.NONE)
 
 
 func _exit_tree() -> void:
