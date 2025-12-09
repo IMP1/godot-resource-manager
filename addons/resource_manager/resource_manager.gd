@@ -28,8 +28,8 @@ func _setup_settings() -> void:
 		ProjectSettings.set_setting(SETTINGS_IGNORED_DIRS, ["res://addons"])
 	ProjectSettings.set_initial_value(SETTINGS_IGNORED_DIRS, ["res://addons"])
 	if not ProjectSettings.has_setting(SETTINGS_ALLOWED_FILETYPES):
-		ProjectSettings.set_setting(SETTINGS_ALLOWED_FILETYPES, [".tres", ".res"])
-	ProjectSettings.set_initial_value(SETTINGS_ALLOWED_FILETYPES, [".tres", ".res"])
+		ProjectSettings.set_setting(SETTINGS_ALLOWED_FILETYPES, ["tres", "res"])
+	ProjectSettings.set_initial_value(SETTINGS_ALLOWED_FILETYPES, ["tres", "res"])
 
 
 func _exit_tree() -> void:

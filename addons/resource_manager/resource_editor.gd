@@ -35,6 +35,15 @@ var _undo_redo: UndoRedo
 
 
 func _ready() -> void:
+	# BUG: This works, but throws GDScript errors:
+	#      modules/gdscript/gdscript_lambda_callable.cpp:126 - GDScript bug (please report): Invalid value of lambda capture at index 0.
+	#      core/object/object.cpp:1310 - Error calling from signal 'changed' to callable: 'GDScript::<anonymous lambda>': Method not found.
+	#      modules/gdscript/gdscript_lambda_callable.cpp:110 - Lambda capture at index 2 was freed. Passed "null" instead.
+	#      res://addons/resource_manager/resource_editor.gd:197 - Cannot call method 'set_value_no_signal' on a null value.
+	#EditorInterface.get_inspector().property_edited.connect(func(property: String) -> void:
+		#if not _loaded_resources.has(EditorInterface.get_inspector().get_edited_object()):
+			#return
+		#(EditorInterface.get_inspector().get_edited_object() as Resource).changed.emit())
 	_new_resource_popup.hide()
 	_resource_types.clear()
 	_new_resource_cancel.pressed.connect(_new_resource_popup.hide)
@@ -61,7 +70,6 @@ func _ready() -> void:
 	_undo_btn.pressed.connect(_undo)
 	_redo_btn.pressed.connect(_redo)
 	_reload.pressed.connect(func() -> void:
-		print(_get_dirs())
 		if _resource_type_selector.selected == -1:
 			return
 		var script: Script = load(_resource_types[_resource_type_selector.selected][&"path"])
@@ -105,7 +113,7 @@ func _get_dirs(root:String="res://") -> Array[String]:
 			var path := root + ("/" if not root.ends_with("/") else "") + subdir
 			if ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_IGNORED_DIRS, []).has(path):
 				continue
-			dirs.append_array(_get_dirs(root + "/" + subdir))
+			dirs.append_array(_get_dirs(path))
 		return dirs
 
 
@@ -135,9 +143,14 @@ func reload(resource_template: Script) -> void:
 		for file in DirAccess.get_files_at(dir):
 			if file.begins_with("."):
 				continue
-			if not ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ALLOWED_FILETYPES, []).has(file.get_extension()):
+			var allowed_filetypes: Array[String]
+			allowed_filetypes.assign(ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ALLOWED_FILETYPES, []))
+			allowed_filetypes.map(func(ext: String) -> String:
+				return ext.trim_prefix(".") if ext.begins_with(".") else ext)
+			if not allowed_filetypes.has(file.get_extension()):
 				continue
-			_load_resource(dir + "/" + file)
+			var path := dir + ("/" if not dir.ends_with("/") else "") + file
+			_load_resource(path)
 
 
 func _get_resource_properties() -> Array[Dictionary]:
@@ -474,7 +487,6 @@ func manual_edit(resource: Resource) -> void:
 
 func _load_resource(filepath: String) -> void:
 	var resource := load(filepath)
-	print(filepath)
 	if not is_type(_resource_template, resource.get_script()):
 		return
 	var row := HBoxContainer.new()
@@ -534,8 +546,8 @@ func _save_all() -> void:
 
 
 func _undo() -> void:
-	pass
+	_undo_redo.undo()
 
 
 func _redo() -> void:
-	pass
+	_undo_redo.redo()
