@@ -1,4 +1,4 @@
-# Godot Resource Manager v0.1.0
+# ![Godot Resource Manager icon](images/ResourceManager.png) Godot Resource Manager v0.1.0 
 
 A Godot 4.x Plugin for easier editing of custom resources by displaying them all in more of a 
 'spreadsheet' format. You can also add new resources, duplicate, and delete them from with the 
@@ -46,12 +46,18 @@ takes priority over any directory-based inclusion or exclusion.
 
 #### Display
 
-  - **Flag Field Abbreviation**: 
+  - **Flag Field Abbreviation**: This is relevant to any exported property that has the 
+`export_flags` hint. If this is set to 'NONE', then the full name of any flag will be shown in the
+editor. If this is set to `INITIALS`, then the first letter will be shown, and if it set to 
+`BIT_POSITIONS` then a number will be shown, representing the flag's bit position.
 
 ## Supported Variant Types
 
-> [!NOTE]  
-> For unsupported types, the plugin defaults to a button which opens the resource in the inspector.
+Below is a list of the variant types that are valid types for an exported property of a resource.
+The checked items have a direct way to edit them within the Resource Manager view. The unchecked 
+items will default to a button that opens the resource in the inspector to be edited there. My 
+intention is to have convenient ways to edit all of these types while also balancing both horizontal
+and vertical space considerations to maximise readability of a resource.
 
   - [X] `bool`
   - [X] `int`
@@ -91,7 +97,7 @@ takes priority over any directory-based inclusion or exclusion.
   - [ ] `PackedColorArray`
   - [ ] `PackedVector4Array`
   - [X] `Enum`
-  - [ ] `BitFlags`
+  - [X] `BitFlags`
 
 
 ## Known Bugs
