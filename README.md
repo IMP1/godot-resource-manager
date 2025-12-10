@@ -1,6 +1,6 @@
 # <img src="images/ResourceManager.svg" width="48" alt="Godot Resource Manager icon"> Godot Resource Manager v0.1.0 
 
-![Latest Release](https://img.shields.io/github/v/release/IMP1/godot-resource-manager)
+![Latest Release](https://img.shields.io/github/v/release/IMP1/godot-resource-manager?include_prereleases)
 
 
 A Godot 4.x Plugin for easier editing of custom resources by displaying them all in more of a 
