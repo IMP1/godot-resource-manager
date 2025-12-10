@@ -1,5 +1,7 @@
 # <img src="images/ResourceManager.svg" width="48" alt="Godot Resource Manager icon"> Godot Resource Manager v0.1.0 
 
+![Latest Release](https://img.shields.io/github/v/release/IMP1/godot-resource-manager)
+
 
 A Godot 4.x Plugin for easier editing of custom resources by displaying them all in more of a 
 'spreadsheet' format. You can also add new resources, duplicate, and delete them from with the 
@@ -99,6 +101,7 @@ and vertical space considerations to maximise readability of a resource.
   - [ ] `PackedVector4Array`
   - [X] `Enum`
   - [X] `BitFlags`
+  - [X] `Resource`
 
 
 ## Known Bugs
@@ -116,3 +119,5 @@ and vertical space considerations to maximise readability of a resource.
   - Saving in a new thread
   - Shortcuts (that are compatible with other Godot Editor shortcuts, and can be set in a settings 
 somewhere)
+  - Prompt for confirmation when there are unsaved changes (when swapping Resource types, closing 
+the editor, etc.)
