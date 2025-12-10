@@ -164,6 +164,8 @@ func reload(resource_template: Script) -> void:
 	for property in _get_resource_properties():
 		var label := Label.new()
 		label.text = (property[&"name"] as String).capitalize()
+		label.tooltip_text = "Property %s: %s" % [property[&"name"], type_string(property[&"type"])]
+		label.mouse_filter = Control.MOUSE_FILTER_STOP
 		label.custom_minimum_size.x = _get_column_width(property)
 		_column_headers.add_child(label)
 	var right_side_buffer := Control.new()
@@ -274,6 +276,8 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				input.value = value as float
 				# TODO: Check for prefix/suffix and min/max
 				input.custom_minimum_size.x = _get_column_width(property)
+				input.allow_greater = true
+				input.allow_lesser = true
 				input.value_changed.connect(func(value: float) -> void:
 					resource.set(property[&"name"], value))
 				var update_function := func() -> void:
@@ -452,6 +456,9 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 		TYPE_PROJECTION:
 			pass
 		TYPE_NODE_PATH:
+			#var inspector_contents := EditorInterface.get_inspector().get_child(0)
+			#inspector_contents.print_tree_pretty()
+			# NOTE: EditorPropertyNodePath and SceneTreeDialog are not available to me. Roll my own?
 			pass
 		TYPE_ARRAY:
 			#print("Array type")
