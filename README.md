@@ -1,4 +1,5 @@
-# ![Godot Resource Manager icon](images/ResourceManager.svg) Godot Resource Manager v0.1.0 
+# <img src="images/ResourceManager.svg" width="48" alt="Godot Resource Manager icon"> Godot Resource Manager v0.1.0 
+
 
 A Godot 4.x Plugin for easier editing of custom resources by displaying them all in more of a 
 'spreadsheet' format. You can also add new resources, duplicate, and delete them from with the 
