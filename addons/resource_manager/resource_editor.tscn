@@ -79,6 +79,10 @@ layout_mode = 2
 [node name="TopActions" type="HBoxContainer" parent="EditorContainer/VBoxContainer"]
 layout_mode = 2
 
+[node name="Label" type="Label" parent="EditorContainer/VBoxContainer/TopActions"]
+layout_mode = 2
+text = "Resource Type:"
+
 [node name="ResourceTypes" type="OptionButton" parent="EditorContainer/VBoxContainer/TopActions"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(192, 0)

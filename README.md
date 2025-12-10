@@ -1,6 +1,46 @@
 # Godot Resource Manager v0.1.0
 
+A Godot 4.x Plugin for easier editing of custom resources by displaying them all in more of a 
+'spreadsheet' format. You can also add new resources, duplicate, and delete them from with the 
+Resource Manager view.
+
 ![An example list of Godot Resources in the Resource Manager](images/screenshot.png)
+
+## Installation
+
+## Usage
+
+Once you've got the plugin and enabled it in your Project Settings, you should see a ResourceManager 
+tab at the top, alongside the 2D, 3D, Script, AssetLib views. Clicking on it will take you to a 
+mostly empty screen.
+
+Resource Manager finds any custom resources with 
+[their own class name](https://docs.godotengine.org/en/4.4/tutorials/scripting/gdscript/gdscript_basics.html#registering-named-classes),
+and will popuplate the dropdown with them. Choose one and press `Reload` to load up all the 
+instances of that type. By default, Resource Manager looks through all your project directories to
+find resources. You can tweak this in the settings.
+
+### Settings
+
+The following settings can be found in your Project Settings under `Addons/Resource Manager`.
+
+> [!NOTE]  
+> Either turn on Advanced Settings, or search for 'Resource Manager' to show the settings.
+
+#### Config
+
+  - **Only Include Allowed Directories**: If this is true, 
+  - **Include Allowed Directories Subfolders**: If this is true, then all subfolders of any allowed
+folders will be searched, as will their subfolders, and so on. If this is false, the only the files
+in any allowed folders will be included.
+  - **Allowed Directories**: 
+  - **Ignored Directories**: 
+  - **Allowed Filetypes**: 
+  - **Ignored Files**: 
+
+#### Display
+
+  - **Flag Field Abbreviation**: 
 
 ## Supported Variant Types
 
@@ -13,8 +53,8 @@
   - [X] `String`
   - [X] `Vector2`
   - [X] `Vector2i`
-  - [ ] `Rect2`
-  - [ ] `Rect2i`
+  - [X] `Rect2`
+  - [X] `Rect2i`
   - [X] `Vector3`
   - [X] `Vector3i`
   - [ ] `Transform2D`
@@ -46,7 +86,6 @@
   - [ ] `PackedVector4Array`
   - [X] `Enum`
   - [ ] `BitFlags`
-  - [ ] `Node`
 
 
 ## Known Bugs
@@ -59,7 +98,10 @@
 (In no particular order)
 
   - Adding Undo/Redo
+  - Adding Deletion of resources
   - Showing min/max and prefix/suffix where the exported property has that info
   - Pressing <kbd>Enter</kbd> to add new resource
   - Saving in a new thread
-  - Shortcuts (that are compatible with other Godot Editor shortcuts, and can be set in a settings somewhere)
+  - Shortcuts (that are compatible with other Godot Editor shortcuts, and can be set in a settings 
+somewhere)
+  - Ignore-List for specific files

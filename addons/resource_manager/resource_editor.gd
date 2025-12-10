@@ -75,6 +75,10 @@ func _ready() -> void:
 	_new_resource_confirm.disabled = true
 	_new_resource_filename.text_changed.connect(_validate_filename)
 	_new_resource_confirm.pressed.connect(_add_new_resource)
+	_new_resource_filename.text_submitted.connect(func(text: String) -> void:
+		_validate_filename(text)
+		if not _new_resource_confirm.disabled:
+			_add_new_resource())
 	_resource_type_selector.clear()
 	for resource_type in ProjectSettings.get_global_class_list():
 		if _is_class_resource(resource_type):
@@ -126,7 +130,12 @@ func _validate_filename(filepath: String) -> void:
 
 func _get_dirs(root:String="res://") -> Array[String]:
 	if root == "res://" and ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ONLY_INCLUDE_ALLOWED_DIRS, false):
-		return (ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ALLOWED_DIRS, []))
+		if not ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_RECURSIVELY_SEARCH_ALLOWED_DIRS, true):
+			return ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ALLOWED_DIRS, [])
+		var dirs: Array[String] = []
+		for dir in ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ALLOWED_DIRS, []):
+			dirs.append_array(_get_dirs(dir))
+		return dirs
 	else:
 		var dirs: Array[String] = [root]
 		for subdir in DirAccess.get_directories_at(root):
@@ -165,13 +174,17 @@ func reload(resource_template: Script) -> void:
 		for file in DirAccess.get_files_at(dir):
 			if file.begins_with("."):
 				continue
+			var path := dir + ("/" if not dir.ends_with("/") else "") + file
+			var ignored_files: Array[String]
+			ignored_files.assign(ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_IGNORED_FILES, []))
+			if ignored_files.has(path):
+				continue
 			var allowed_filetypes: Array[String]
 			allowed_filetypes.assign(ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_ALLOWED_FILETYPES, []))
 			allowed_filetypes.map(func(ext: String) -> String:
 				return ext.trim_prefix(".") if ext.begins_with(".") else ext)
 			if not allowed_filetypes.has(file.get_extension()):
 				continue
-			var path := dir + ("/" if not dir.ends_with("/") else "") + file
 			_load_resource(path)
 
 
@@ -198,15 +211,28 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 		TYPE_INT, TYPE_FLOAT:
 			# TODO: Navigation/Collision/etc. Layers
 			if property[&"hint"] == PROPERTY_HINT_FLAGS:
-				print(property)
 				var names: PackedStringArray = property[&"hint_string"].split(",")
+				# TODO: Handle situation where values are in the hint string
+				# SEE: https://docs.godotengine.org/en/stable/classes/class_%40globalscope.html#enum-globalscope-propertyhint
+				#      (Search for PROPERTY_HINT_FLAGS)
 				var input := HBoxContainer.new()
 				input.custom_minimum_size.x = _get_column_width(property)
 				input.add_theme_constant_override(&"separation", 1)
 				for i in names.size():
 					var bit_input := Button.new()
 					bit_input.toggle_mode = true
-					bit_input.text = names[i]
+					bit_input.add_theme_font_size_override(&"font_size", 12)
+					bit_input.text_overrun_behavior = TextServer.OVERRUN_TRIM_CHAR
+					match ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_FLAG_FIELD_ABBREVIATION, 0):
+						ResourceManagerPlugin.FlagAbbreviations.NONE:
+							bit_input.text = names[i].capitalize()
+							bit_input.custom_minimum_size.x = 96
+						ResourceManagerPlugin.FlagAbbreviations.INITIALS:
+							bit_input.custom_minimum_size.x = 24
+							bit_input.text = names[i].substr(0, 1).capitalize()
+						ResourceManagerPlugin.FlagAbbreviations.BIT_POSITIONS:
+							bit_input.text = str(i)
+							bit_input.custom_minimum_size.x = 24
 					bit_input.tooltip_text = "%s flag\nBit %d, value %d" % [names[i], i, pow(2, i)]
 					bit_input.button_pressed = ((value as int) & (1 << i)) > 0
 					bit_input.toggled.connect(func(on: bool) -> void:
@@ -373,7 +399,44 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			input.add_child(w_input)
 			return input
 		TYPE_RECT2, TYPE_RECT2I:
-			pass # TODO: Copy from Vector4, and have w, h instead of z, w
+			var input := HBoxContainer.new()
+			input.custom_minimum_size.x = _get_column_width(property)
+			var x_input := SpinBox.new()
+			x_input.prefix = "x:"
+			x_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			x_input.value = (value as Rect2).position.x
+			x_input.value_changed.connect(func(value: float) -> void:
+				resource.get(property[&"name"]).position.x = value)
+			var y_input := SpinBox.new()
+			y_input.prefix = "y:"
+			y_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			y_input.value = (value as Rect2).position.y
+			y_input.value_changed.connect(func(value: float) -> void:
+				resource.get(property[&"name"]).position.y = value)
+			var w_input := SpinBox.new()
+			w_input.prefix = "w:"
+			w_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			w_input.value = (value as Rect2).size.x
+			w_input.value_changed.connect(func(value: float) -> void:
+				resource.get(property[&"name"]).size.x = value)
+			var h_input := SpinBox.new()
+			h_input.prefix = "h:"
+			h_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			h_input.value = (value as Rect2).size.y
+			h_input.value_changed.connect(func(value: float) -> void:
+				resource.get(property[&"name"]).size.y = value)
+			var update_function := func() -> void:
+				x_input.value = resource.get(property[&"name"]).position.x
+				y_input.value = resource.get(property[&"name"]).position.y
+				w_input.value = resource.get(property[&"name"]).size.x
+				h_input.value = resource.get(property[&"name"]).size.y
+			_add_resource_update_callback(resource, update_function)
+			resource.changed.connect(update_function)
+			input.add_child(x_input)
+			input.add_child(y_input)
+			input.add_child(w_input)
+			input.add_child(h_input)
+			return input
 		TYPE_TRANSFORM2D:
 			pass
 		TYPE_TRANSFORM3D:
@@ -455,8 +518,16 @@ func _get_column_width(property: Dictionary) -> int:
 		TYPE_BOOL:
 			return 96
 		TYPE_INT, TYPE_FLOAT:
-			# TODO: Bitflags
-			if property[&"hint"] == PROPERTY_HINT_ENUM:
+			if property[&"hint"] == PROPERTY_HINT_FLAGS:
+				var flag_count: int = property[&"hint_string"].count(",") + 1
+				match ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_FLAG_FIELD_ABBREVIATION, 0):
+					ResourceManagerPlugin.FlagAbbreviations.NONE:
+						return 98 * flag_count
+					ResourceManagerPlugin.FlagAbbreviations.INITIALS:
+						return 26 * flag_count
+					ResourceManagerPlugin.FlagAbbreviations.BIT_POSITIONS:
+						return 26 * flag_count
+			elif property[&"hint"] == PROPERTY_HINT_ENUM:
 				return 128
 			else:
 				return 128
