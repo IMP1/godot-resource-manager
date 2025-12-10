@@ -29,14 +29,20 @@ The following settings can be found in your Project Settings under `Addons/Resou
 
 #### Config
 
-  - **Only Include Allowed Directories**: If this is true, 
+  - **Only Include Allowed Directories**: If this is true, then only folders in the **Allowed 
+Directories** list will be searched for resources. If this is false, then all folders, except those 
+in the **Ignored Directories** will be searched for resources. 
   - **Include Allowed Directories Subfolders**: If this is true, then all subfolders of any allowed
 folders will be searched, as will their subfolders, and so on. If this is false, the only the files
 in any allowed folders will be included.
-  - **Allowed Directories**: 
-  - **Ignored Directories**: 
-  - **Allowed Filetypes**: 
-  - **Ignored Files**: 
+  - **Allowed Directories**: This is a list of folders to search. It's only used if **Only Include 
+Allowed Directories** is true.
+  - **Ignored Directories**: This is a list of folders that are not searched. Subfolders of these 
+folders will also not be searched.
+  - **Allowed Filetypes**: This is a list of filetypes that represent the resources. It defaults to 
+including `tres` and `res` files.
+  - **Ignored Files**: These are files that will not be included in any lists of resources. This 
+takes priority over any directory-based inclusion or exclusion.
 
 #### Display
 
@@ -100,8 +106,6 @@ in any allowed folders will be included.
   - Adding Undo/Redo
   - Adding Deletion of resources
   - Showing min/max and prefix/suffix where the exported property has that info
-  - Pressing <kbd>Enter</kbd> to add new resource
   - Saving in a new thread
   - Shortcuts (that are compatible with other Godot Editor shortcuts, and can be set in a settings 
 somewhere)
-  - Ignore-List for specific files
