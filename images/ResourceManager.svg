@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><path fill="#e0e0e0" d="M 2 1 
+a 1 1 0 0 0 -1 1 
+v 12
+a 1 1 0 0 0 1 1
+h 12
+a 1 1 0 0 0 1 -1
+V 2
+a 1 1 0 0 0 -1 -1
+z
+
+m 0 1
+h 12
+v 12
+H 2 
+z
+
+m 1 1
+v 2
+h 2
+v -2
+z
+m 3 0
+v 2
+h 2
+v -2
+z
+m 3 0
+v 2
+h 4
+v -2
+z
+
+m -6 3
+v 2
+h 2
+v -2
+z
+m 3 0
+v 2 
+h 2
+v -2
+z
+m 3 0
+v 2
+h 4
+v -2
+z
+
+m -6 3
+v 2
+h 2
+v -2
+z
+m 3 0
+v 2
+h 2
+v -2
+z
+m 3 0
+v 2
+h 4
+v -2
+z
+
+m -6 3
+v 1
+h 2
+v -1
+z
+m 3 0
+v 1
+h 2
+v -1
+z
+m 3 0
+v 1
+h 4
+v -1
+z"/></svg>
