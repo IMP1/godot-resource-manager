@@ -121,3 +121,11 @@ and vertical space considerations to maximise readability of a resource.
 somewhere)
   - Prompt for confirmation when there are unsaved changes (when swapping Resource types, closing 
 the editor, etc.)
+  - Collapsible columns for groups/categories/sub-categories
+  - Add inputs for export types hat use a string type (filepath, input action name, etc.)
+  - Recognise color_no_alpha and treat them appropriately
+  - *MAYBE* more spreadsheet-like functionality (if there's interest)
+	- Filtering rows by certain values
+	- Ordering rows by certain values
+	- Conditional formatting particular columns
+	- Analysis of columns (mean, variance, min, max, sum, etc.)

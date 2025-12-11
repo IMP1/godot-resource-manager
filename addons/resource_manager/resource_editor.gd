@@ -274,7 +274,9 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			else:
 				var input := SpinBox.new()
 				input.value = value as float
-				# TODO: Check for prefix/suffix and min/max
+				# TODO: Check for prefix/suffix and min/max - Maybe use the EditorSpinSlider class?
+				# TODO: Check for degrees, or degress as radian
+				#       https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html#adding-suffixes-and-handling-degrees-radians
 				input.custom_minimum_size.x = _get_column_width(property)
 				input.allow_greater = true
 				input.allow_lesser = true
@@ -286,18 +288,46 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				resource.changed.connect(update_function)
 				return input
 		TYPE_STRING, TYPE_STRING_NAME:
-			var input := LineEdit.new()
-			input.text = str(value)
-			input.custom_minimum_size.x = _get_column_width(property)
-			input.placeholder_text = property[&"name"]
-			input.text_changed.connect(func(value: String) -> void:
-				resource.set(property[&"name"], value))
-			var update_function := func() -> void:
-				input.text = resource.get(property[&"name"])
-			_add_resource_update_callback(resource, update_function)
-			resource.changed.connect(update_function)
-			return input
+			if property[&"hint"] == PROPERTY_HINT_MULTILINE_TEXT:
+				# TODO: Think about the sizing and behaviour of this
+				var input := TextEdit.new()
+				input.text = str(value)
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.placeholder_text = property[&"name"]
+				input.text_changed.connect(func() -> void:
+					resource.set(property[&"name"], input.text))
+				var update_function := func() -> void:
+					input.text = resource.get(property[&"name"])
+				_add_resource_update_callback(resource, update_function)
+				resource.changed.connect(update_function)
+				return input
+			elif property[&"hint"] == PROPERTY_HINT_DIR: # TODO
+				var input := FilesystemAccessButton.new()
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.file_mode = EditorFileDialog.FileMode.FILE_MODE_OPEN_DIR
+				input.access = EditorFileDialog.Access.ACCESS_RESOURCES
+				input.path = str(value)
+				# TODO: Connect signals
+				return input
+			#elif property[&"hint"] == PROPERTY_HINT_FILE: # TODO
+			#elif property[&"hint"] == PROPERTY_HINT_DIR: # TODO
+			#elif property[&"hint"] == PROPERTY_HINT_FILE_PATH: # TODO
+			#elif property[&"hint"] == PROPERTY_HINT_GLOBAL_FILE: # TODO
+			#elif property[&"hint"] == PROPERTY_HINT_GLOBAL_DIR: # TODO
+			else:
+				var input := LineEdit.new()
+				input.text = str(value)
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.placeholder_text = property[&"name"]
+				input.text_changed.connect(func(value: String) -> void:
+					resource.set(property[&"name"], value))
+				var update_function := func() -> void:
+					input.text = resource.get(property[&"name"])
+				_add_resource_update_callback(resource, update_function)
+				resource.changed.connect(update_function)
+				return input
 		TYPE_COLOR:
+			# TODO: Check if it's a color_no_alpha situation
 			var input := ColorPickerButton.new()
 			input.color = value as Color
 			input.custom_minimum_size.x = _get_column_width(property)
@@ -456,10 +486,24 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 		TYPE_PROJECTION:
 			pass
 		TYPE_NODE_PATH:
-			#var inspector_contents := EditorInterface.get_inspector().get_child(0)
-			#inspector_contents.print_tree_pretty()
-			# NOTE: EditorPropertyNodePath and SceneTreeDialog are not available to me. Roll my own?
-			pass
+			var input := Button.new()
+			input.text = resource.get(property[&"name"])
+			input.custom_minimum_size.x = _get_column_width(property)
+			input.pressed.connect(func() -> void:
+				var current_value: Node = null
+				if resource.get(property[&"name"]):
+					current_value = EditorInterface.get_edited_scene_root().get_node(resource.get(property[&"name"]))
+				var valid_types := str(property[&"hint_string"]).split(",")
+				# NOTE: Cancelling the popup clears the value. I think this is fine, but it needs
+				#       documenting. TODO: Document this
+				EditorInterface.popup_node_selector(func(path: NodePath): 
+					input.text = path
+					resource.set(property[&"name"], path), valid_types, current_value))
+			var update_function := func() -> void:
+				input.text = resource.get(property[&"name"])
+			_add_resource_update_callback(resource, update_function)
+			resource.changed.connect(update_function)
+			return input
 		TYPE_ARRAY:
 			#print("Array type")
 			pass
@@ -482,9 +526,11 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			#return input
 			pass
 		#TYPE_CALLABLE:
+			# Maybe use this: https://docs.godotengine.org/en/stable/classes/class_editorinterface.html#class-editorinterface-method-popup-method-selector
 			#pass
 		#TYPE_SIGNAL:
 			#pass
+			# Not sure if this can be used for signals (kinda assume not)... EditorInterface.popup_property_selector
 		#TYPE_RID:
 			#pass
 		TYPE_OBJECT:
