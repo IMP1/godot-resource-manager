@@ -2,7 +2,6 @@
 extends PanelContainer
 
 const ROW_MIN_HEIGHT := 24
-const ROW_END_PADDING := 8
 
 var _resource_types: Array[Dictionary]
 var _resource_template: Script
@@ -168,9 +167,6 @@ func reload(resource_template: Script) -> void:
 		label.mouse_filter = Control.MOUSE_FILTER_STOP
 		label.custom_minimum_size.x = _get_column_width(property)
 		_column_headers.add_child(label)
-	var right_side_buffer := Control.new()
-	right_side_buffer.custom_minimum_size.x = ROW_END_PADDING
-	_column_headers.add_child(right_side_buffer)
 	for dir in _get_dirs():
 		_new_resource_folder.add_item(dir)
 		for file in DirAccess.get_files_at(dir):
@@ -301,13 +297,18 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				_add_resource_update_callback(resource, update_function)
 				resource.changed.connect(update_function)
 				return input
-			elif property[&"hint"] == PROPERTY_HINT_DIR: # TODO
+			elif property[&"hint"] == PROPERTY_HINT_DIR:
 				var input := FilesystemAccessButton.new()
 				input.custom_minimum_size.x = _get_column_width(property)
 				input.file_mode = EditorFileDialog.FileMode.FILE_MODE_OPEN_DIR
 				input.access = EditorFileDialog.Access.ACCESS_RESOURCES
 				input.path = str(value)
-				# TODO: Connect signals
+				input.path_changed.connect(func() -> void:
+					resource.set(property[&"name"], input.path))
+				var update_function := func() -> void:
+					input.path = resource.get(property[&"name"])
+				_add_resource_update_callback(resource, update_function)
+				resource.changed.connect(update_function)
 				return input
 			#elif property[&"hint"] == PROPERTY_HINT_FILE: # TODO
 			#elif property[&"hint"] == PROPERTY_HINT_DIR: # TODO
@@ -685,13 +686,8 @@ func _load_resource(filepath: String) -> void:
 	item_actions.custom_minimum_size.y = ROW_MIN_HEIGHT
 	for property in _get_resource_properties():
 		var input := _get_input_field(property, resource)
-		item_actions.custom_minimum_size.y = ROW_MIN_HEIGHT
-		input.resized.connect(func() -> void:
-			item_actions.custom_minimum_size.y = maxf(item_actions.custom_minimum_size.y, input.size.y))
 		row.add_child(input)
-	var right_side_buffer := Control.new()
-	right_side_buffer.custom_minimum_size.x = ROW_END_PADDING
-	row.add_child(right_side_buffer)
+		# TODO: If/when inputs resize vertically, the item_actions should also resize to match
 	_data.add_child(row)
 	var delete_btn := Button.new()
 	var duplicate_btn := Button.new()
@@ -712,6 +708,8 @@ func _load_resource(filepath: String) -> void:
 	item_actions.add_child(manual_edit_btn)
 	item_actions.add_child(delete_btn)
 	_item_actions.add_child(item_actions)
+	row.custom_minimum_size.y = maxf(row.size.y, item_actions.size.y)
+	item_actions.custom_minimum_size.y = maxf(row.size.y, item_actions.size.y)
 
 
 # SEE: https://forum.godotengine.org/t/type-type-hint/2471/4

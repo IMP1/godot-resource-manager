@@ -148,7 +148,13 @@ size_flags_horizontal = 3
 horizontal_scroll_mode = 3
 vertical_scroll_mode = 0
 
-[node name="ColumnHeaders" type="HBoxContainer" parent="EditorContainer/VBoxContainer/Main/ScrollHeader"]
+[node name="MarginContainer" type="MarginContainer" parent="EditorContainer/VBoxContainer/Main/ScrollHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_right = 16
+
+[node name="ColumnHeaders" type="HBoxContainer" parent="EditorContainer/VBoxContainer/Main/ScrollHeader/MarginContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -165,7 +171,14 @@ size_flags_vertical = 3
 horizontal_scroll_mode = 2
 vertical_scroll_mode = 3
 
-[node name="Data" type="VBoxContainer" parent="EditorContainer/VBoxContainer/Main/ScrollContents"]
+[node name="MarginContainer" type="MarginContainer" parent="EditorContainer/VBoxContainer/Main/ScrollContents"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 32
+
+[node name="Data" type="VBoxContainer" parent="EditorContainer/VBoxContainer/Main/ScrollContents/MarginContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -177,7 +190,13 @@ layout_mode = 2
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="ItemActions" type="VBoxContainer" parent="EditorContainer/VBoxContainer/Main/ScrollActions"]
+[node name="MarginContainer" type="MarginContainer" parent="EditorContainer/VBoxContainer/Main/ScrollActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_bottom = 32
+
+[node name="ItemActions" type="VBoxContainer" parent="EditorContainer/VBoxContainer/Main/ScrollActions/MarginContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 

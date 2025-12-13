@@ -106,7 +106,6 @@ and vertical space considerations to maximise readability of a resource.
 
 ## Known Bugs
 
-  - Duplicate/Delete icons get out of sync with the rows of the resources they're for
   - Resources that inherit from other custom Resources aren't recognised by the plugin
 
 ## Roadmap
@@ -122,7 +121,7 @@ somewhere)
   - Prompt for confirmation when there are unsaved changes (when swapping Resource types, closing 
 the editor, etc.)
   - Collapsible columns for groups/categories/sub-categories
-  - Add inputs for export types hat use a string type (filepath, input action name, etc.)
+  - Add inputs for export types that use a string type (filepath, input action name, etc.)
   - Recognise color_no_alpha and treat them appropriately
   - *MAYBE* more spreadsheet-like functionality (if there's interest)
 	- Filtering rows by certain values
