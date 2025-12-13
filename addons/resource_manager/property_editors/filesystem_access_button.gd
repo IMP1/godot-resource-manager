@@ -29,9 +29,16 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	button.pressed.connect(dialog.popup_centered)
-	dialog.file_selected.connect(func(value: String) -> void:
-		path = value
-		path_changed.emit())
+	if file_mode == EditorFileDialog.FileMode.FILE_MODE_OPEN_FILE or file_mode == EditorFileDialog.FileMode.FILE_MODE_OPEN_ANY:
+		dialog.file_selected.connect(func(value: String) -> void:
+			path = value
+			line_edit.text = path
+			path_changed.emit())
+	if file_mode == EditorFileDialog.FileMode.FILE_MODE_OPEN_DIR or file_mode == EditorFileDialog.FileMode.FILE_MODE_OPEN_ANY:
+		dialog.dir_selected.connect(func(value: String) -> void:
+			path = value
+			line_edit.text = path
+			path_changed.emit())
 	line_edit.text_changed.connect(func(value: String) -> void:
 		path = value
 		path_changed.emit())
