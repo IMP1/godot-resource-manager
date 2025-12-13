@@ -34,6 +34,9 @@ var _resource_update_callbacks: Dictionary[Resource, Array]
 @onready var _save_progress := %SavingProgress as ProgressBar
 
 
+# TODO: Test it with selecting a resouce that has no files for.
+
+
 func _exit_tree() -> void:
 	EditorInterface.get_inspector().property_edited.disconnect(_inspector_resource_edited)
 	for resource in _resource_update_callbacks:
@@ -104,11 +107,22 @@ func _ready() -> void:
 	#       https://docs.godotengine.org/en/stable/classes/class_editorundoredomanager.html#class-editorundoredomanager
 
 
-func _is_class_resource(class_type) -> bool:
-	if class_type[&"base"] == &"Resource" and not class_type[&"is_abstract"]:
+func _is_class_resource(class_type: Dictionary, can_be_abstract:bool=false) -> bool:
+	# QUESTION: Should data of type (ChildA, which extends ParentA) be loaded when selecting 
+	#           ParentA?
+	# TODO: Decide the above. Maybe have it as a setting? Any extra fields would not be included. 
+	#       Maybe something to indicate that this is a child resource and so might have other 
+	#       fields.
+	if class_type[&"is_abstract"] and not can_be_abstract:
+		return false
+	if class_type[&"base"] == &"Resource":
 		return true
-	# TODO: Ascend ancestors to see if it comes from a Resource type
-	return false
+	var parents: Array[Dictionary] = ProjectSettings.get_global_class_list().filter(func(c: Dictionary) -> bool:
+		return c[&"class"] == class_type[&"base"])
+	if parents.is_empty():
+		return false
+	assert(parents.size() == 1)
+	return _is_class_resource(parents[0], true)
 
 
 func _validate_filename(filepath: String) -> void:
