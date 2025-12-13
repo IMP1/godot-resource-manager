@@ -115,7 +115,7 @@ and vertical space considerations to maximise readability of a resource.
   - Adding Undo/Redo
   - Adding Deletion of resources
   - Showing min/max and prefix/suffix where the exported property has that info
-  - Saving in a new thread
+  - Saving and loading in a new thread
   - Shortcuts (that are compatible with other Godot Editor shortcuts, and can be set in a settings 
 somewhere)
   - Prompt for confirmation when there are unsaved changes (when swapping Resource types, closing 
