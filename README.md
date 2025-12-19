@@ -1,4 +1,4 @@
-# <img src="images/ResourceManager.svg" width="48" alt="Godot Resource Manager icon"> Godot Resource Manager v0.1.0 
+# <img src="images/ResourceManager.svg" width="48" alt="Godot Resource Manager icon"> Godot Resource Manager v0.2.0 
 
 ![Latest Release](https://img.shields.io/github/v/release/IMP1/godot-resource-manager?include_prereleases)
 
@@ -83,7 +83,7 @@ and vertical space considerations to maximise readability of a resource.
   - [ ] `Projection`
   - [X] `Color`
   - [X] `StringName`
-  - [ ] `NodePath`
+  - [X] `NodePath`
   - [ ] `RID`
   - [ ] `Callable`
   - [ ] `Signal`
@@ -105,8 +105,6 @@ and vertical space considerations to maximise readability of a resource.
 
 
 ## Known Bugs
-
-  - Resources that inherit from other custom Resources aren't recognised by the plugin
 
 ## Roadmap
 

@@ -88,9 +88,13 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(192, 0)
 layout_mode = 2
 selected = 0
-item_count = 1
-popup/item_0/text = "FooBar"
+item_count = 3
+popup/item_0/text = "CustomResource2"
 popup/item_0/id = 0
+popup/item_1/text = "CustomResource3"
+popup/item_1/id = 1
+popup/item_2/text = "FooBar"
+popup/item_2/id = 2
 
 [node name="Reload" type="Button" parent="EditorContainer/VBoxContainer/TopActions"]
 unique_name_in_owner = true
@@ -131,7 +135,7 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeaderLarge"
-text = "Foo Bar"
+text = "Custom Resource 2"
 horizontal_alignment = 1
 
 [node name="Main" type="GridContainer" parent="EditorContainer/VBoxContainer"]
@@ -194,6 +198,7 @@ vertical_scroll_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/margin_left = 1
 theme_override_constants/margin_bottom = 32
 
 [node name="ItemActions" type="VBoxContainer" parent="EditorContainer/VBoxContainer/Main/ScrollActions/MarginContainer"]
@@ -237,7 +242,7 @@ theme_override_styles/separator = SubResource("StyleBoxEmpty_en5mg")
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.5019608)
 theme_override_font_sizes/font_size = 12
-text = "Godot Resource Manager v0.1.0"
+text = "Godot Resource Manager v0.2.0"
 
 [node name="NewResourcePopup" type="PopupPanel" parent="."]
 unique_name_in_owner = true
@@ -254,8 +259,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 4.0
 offset_top = 4.0
-offset_right = 252.0
-offset_bottom = 108.0
+offset_right = -4.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
 

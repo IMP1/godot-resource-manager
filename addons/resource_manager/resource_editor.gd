@@ -1,7 +1,7 @@
 @tool
 extends PanelContainer
 
-const ROW_MIN_HEIGHT := 24
+const ROW_MIN_HEIGHT := 28
 
 var _resource_types: Array[Dictionary]
 var _resource_template: Script
@@ -73,7 +73,8 @@ func _ready() -> void:
 	_new_resource_cancel.pressed.connect(_new_resource_popup.hide)
 	_add_row.pressed.connect(_new_resource_popup.popup_centered)
 	_add_row.pressed.connect(func():
-		_validate_filename(_new_resource_filename.text))
+		_validate_filename(_new_resource_filename.text)
+		_new_resource_filename.grab_focus())
 	_new_resource_confirm.disabled = true
 	_new_resource_filename.text_changed.connect(_validate_filename)
 	_new_resource_confirm.pressed.connect(_add_new_resource)
@@ -113,6 +114,7 @@ func _is_class_resource(class_type: Dictionary, can_be_abstract:bool=false) -> b
 	# TODO: Decide the above. Maybe have it as a setting? Any extra fields would not be included. 
 	#       Maybe something to indicate that this is a child resource and so might have other 
 	#       fields.
+	# TODO: Maybe also have an option for loading abstract resources?
 	if class_type[&"is_abstract"] and not can_be_abstract:
 		return false
 	if class_type[&"base"] == &"Resource":
@@ -706,6 +708,9 @@ func _load_resource(filepath: String) -> void:
 	var delete_btn := Button.new()
 	var duplicate_btn := Button.new()
 	var manual_edit_btn := Button.new()
+	delete_btn.custom_minimum_size = Vector2.ONE * ROW_MIN_HEIGHT
+	duplicate_btn.custom_minimum_size = Vector2.ONE * ROW_MIN_HEIGHT
+	manual_edit_btn.custom_minimum_size = Vector2.ONE * ROW_MIN_HEIGHT
 	delete_btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	duplicate_btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	manual_edit_btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
