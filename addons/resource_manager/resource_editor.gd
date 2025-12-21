@@ -174,9 +174,10 @@ func reload(resource_template: Script) -> void:
 	_new_resource_folder.clear()
 	_loaded_resources.clear()
 	for property in _get_resource_properties():
-		var label := Label.new()
+		var label := PropertyHeaderLabel.new()
+		label.property_name = property[&"name"]
+		label.property_type = type_string(property[&"type"])
 		label.text = (property[&"name"] as String).capitalize()
-		label.tooltip_text = "Property %s: %s" % [property[&"name"], type_string(property[&"type"])]
 		label.mouse_filter = Control.MOUSE_FILTER_STOP
 		label.custom_minimum_size.x = _get_column_width(property)
 		_column_headers.add_child(label)
@@ -221,6 +222,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			return input
 		TYPE_INT, TYPE_FLOAT:
 			if property[&"hint"] == PROPERTY_HINT_FLAGS:
+				# TODO: Test this!
 				var names: PackedStringArray = property[&"hint_string"].split(",")
 				var input := HBoxContainer.new()
 				input.custom_minimum_size.x = _get_column_width(property)
@@ -827,9 +829,9 @@ func _load_resource(filepath: String) -> void:
 	delete_btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	duplicate_btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	manual_edit_btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	delete_btn.tooltip_text = "Delete this resource"
-	duplicate_btn.tooltip_text = "Duplicate this resource"
-	manual_edit_btn.tooltip_text = "Manually edit this resource"
+	delete_btn.tooltip_text = "Deletes this resource"
+	duplicate_btn.tooltip_text = "Duplicates this resource"
+	manual_edit_btn.tooltip_text = "Opens this resource in the inspector"
 	delete_btn.pressed.connect(_delete_resource.bind(resource, filepath))
 	duplicate_btn.pressed.connect(_duplicate_resource.bind(resource))
 	manual_edit_btn.pressed.connect(manual_edit.bind(resource))
