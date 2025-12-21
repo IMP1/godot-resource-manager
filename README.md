@@ -99,9 +99,50 @@ and vertical space considerations to maximise readability of a resource.
   - [ ] `PackedVector3Array`
   - [ ] `PackedColorArray`
   - [ ] `PackedVector4Array`
-  - [X] `Enum`
-  - [X] `BitFlags`
   - [X] `Resource`
+  - [ ] Special Cases for `bool`
+    - [ ] `PROPERTY_HINT_GROUP_ENABLE`
+  - [ ] Special Cases for `int` and `float`
+    - [ ] `PROPERTY_HINT_RANGE`
+    - [X] `PROPERTY_HINT_ENUM`
+    - [ ] `PROPERTY_HINT_ENUM_SUGGESTION`
+    - [ ] `PROPERTY_HINT_EXP_EASING`
+    - [X] `PROPERTY_HINT_FLAGS`
+    - [ ] `PROPERTY_HINT_LAYERS_2D_RENDER`
+    - [ ] `PROPERTY_HINT_LAYERS_2D_PHYSICS`
+    - [ ] `PROPERTY_HINT_LAYERS_2D_NAVIGATION`
+    - [ ] `PROPERTY_HINT_LAYERS_3D_RENDER`
+    - [ ] `PROPERTY_HINT_LAYERS_3D_PHYSICS`
+    - [ ] `PROPERTY_HINT_LAYERS_3D_NAVIGATION`
+    - [ ] `PROPERTY_HINT_LAYERS_AVOIDANCE`
+  - [ ] Special Cases for `String`
+    - [ ] `PROPERTY_HINT_MULTILINE_TEXT`
+    - [X] `PROPERTY_HINT_FILE_PATH`
+    - [X] `PROPERTY_HINT_FILE`
+    - [X] `PROPERTY_HINT_DIR`
+    - [X] `PROPERTY_HINT_GLOBAL_FILE`
+    - [X] `PROPERTY_HINT_GLOBAL_DIR`
+    - [X] `PROPERTY_HINT_SAVE_FILE`
+    - [X] `PROPERTY_HINT_GLOBAL_SAVE_FILE`
+    - [ ] `PROPERTY_HINT_EXPRESSION`
+    - [ ] `PROPERTY_HINT_PLACEHOLDER_TEXT`
+    - [ ] `PROPERTY_HINT_TYPE_STRING`
+    - [ ] `PROPERTY_HINT_LOCALE_ID`
+    - [ ] `PROPERTY_HINT_PASSWORD`
+    - [X] `PROPERTY_HINT_INPUT_NAME`
+  - [ ] Special Cases for `Vector`
+    - [ ] `PROPERTY_HINT_LINK`
+  - [ ] Special Cases for `Quaternion`
+    - [ ] `PROPERTY_HINT_HIDE_QUATERNION_EDIT`
+  - [ ] Special Cases for `Color`
+    - [ ] `PROPERTY_HINT_COLOR_NO_ALPHA`
+  - [ ] Special Cases for `Callable`
+    - [ ] `PROPERTY_HINT_TOOL_BUTTON`
+  - [ ] Special Cases for `Array`
+    - [ ] `PROPERTY_HINT_ARRAY_TYPE`
+  - [ ] Special Cases for `Dictionary`
+    - [ ] `PROPERTY_HINT_DICTIONARY_TYPE`
+    - [ ] `PROPERTY_HINT_LOCALIZABLE_STRING`
 
 
 ## Known Bugs
@@ -126,3 +167,4 @@ the editor, etc.)
 	- Ordering rows by certain values
 	- Conditional formatting particular columns
 	- Analysis of columns (mean, variance, min, max, sum, etc.)
+  - TEST TEST TEST
