@@ -8,7 +8,7 @@ var _resource_template: Script
 var _loaded_resources: Array[Resource]
 var _is_resource_just_created: bool = false
 var _undo_redo: UndoRedo
-var _resource_update_callbacks: Dictionary[Resource, Array]
+var _registered_callbacks: Dictionary[Signal, Array]
 
 @onready var _column_headers := %ColumnHeaders as BoxContainer
 @onready var _item_actions := %ItemActions as BoxContainer
@@ -34,20 +34,17 @@ var _resource_update_callbacks: Dictionary[Resource, Array]
 @onready var _save_progress := %SavingProgress as ProgressBar
 
 
-# TODO: Test it with selecting a resouce that has no files for.
-
-
 func _exit_tree() -> void:
 	EditorInterface.get_inspector().property_edited.disconnect(_inspector_resource_edited)
-	for resource in _resource_update_callbacks:
-		for callback: Callable in _resource_update_callbacks[resource]:
-			resource.changed.disconnect(callback)
+	for event in _registered_callbacks:
+		for callback: Callable in _registered_callbacks[event]:
+			event.disconnect(callback)
 
 
-func _add_resource_update_callback(resource: Resource, callback: Callable) -> void:
-	if not _resource_update_callbacks.has(resource):
-		_resource_update_callbacks[resource] = []
-	_resource_update_callbacks[resource].append(callback)
+func _register_callback(object_signal: Signal, callback: Callable) -> void:
+	if not _registered_callbacks.has(object_signal):
+		_registered_callbacks[object_signal] = []
+	_registered_callbacks[object_signal].append(callback)
 
 
 func _inspector_resource_edited(property: String) -> void:
@@ -219,49 +216,52 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				resource.set(property[&"name"], value))
 			var update_function := func() -> void:
 				input.set_pressed_no_signal(resource.get(property[&"name"]))
-			_add_resource_update_callback(resource, update_function)
+			_register_callback(resource.changed, update_function)
 			resource.changed.connect(update_function)
 			return input
 		TYPE_INT, TYPE_FLOAT:
-			# TODO: Navigation/Collision/etc. Layers
 			if property[&"hint"] == PROPERTY_HINT_FLAGS:
 				var names: PackedStringArray = property[&"hint_string"].split(",")
-				# TODO: Handle situation where values are in the hint string
-				# SEE: https://docs.godotengine.org/en/stable/classes/class_%40globalscope.html#enum-globalscope-propertyhint
-				#      (Search for PROPERTY_HINT_FLAGS)
 				var input := HBoxContainer.new()
 				input.custom_minimum_size.x = _get_column_width(property)
 				input.add_theme_constant_override(&"separation", 1)
 				for i in names.size():
+					var flag_name := names[i]
+					var flag_value := 1 << i
+					if names[i].contains(":"):
+						flag_name = names[i].get_slice(":", 0)
+						flag_value = names[i].get_slice(":", 1).to_int()
 					var bit_input := Button.new()
 					bit_input.toggle_mode = true
 					bit_input.add_theme_font_size_override(&"font_size", 12)
 					bit_input.text_overrun_behavior = TextServer.OVERRUN_TRIM_CHAR
 					match ProjectSettings.get_setting(ResourceManagerPlugin.SETTINGS_FLAG_FIELD_ABBREVIATION, 0):
 						ResourceManagerPlugin.FlagAbbreviations.NONE:
-							bit_input.text = names[i].capitalize()
+							bit_input.text = flag_name#.capitalize()
 							bit_input.custom_minimum_size.x = 96
 						ResourceManagerPlugin.FlagAbbreviations.INITIALS:
 							bit_input.custom_minimum_size.x = 24
-							bit_input.text = names[i].substr(0, 1).capitalize()
+							bit_input.text = flag_name.substr(0, 1)#.capitalize()
 						ResourceManagerPlugin.FlagAbbreviations.BIT_POSITIONS:
 							bit_input.text = str(i)
 							bit_input.custom_minimum_size.x = 24
-					bit_input.tooltip_text = "%s flag\nBit %d, value %d" % [names[i], i, pow(2, i)]
-					bit_input.button_pressed = ((value as int) & (1 << i)) > 0
+					bit_input.tooltip_text = "%s flag\nValue %d" % [flag_name, flag_value]
+					bit_input.button_pressed = ((value as int) & flag_value) > 0
+					bit_input.set_meta(&"flag_value", flag_value)
 					bit_input.toggled.connect(func(on: bool) -> void:
 						var old_value := resource.get(property[&"name"])
 						if on:
-							old_value = old_value | (1 << i)
+							old_value = old_value | flag_value
 						else:
-							old_value = old_value & ~(1 << i)
+							old_value = old_value & ~flag_value
 						resource.set(property[&"name"], old_value))
 					input.add_child(bit_input)
 				var update_function := func() -> void:
 					for i in input.get_child_count():
 						var child := input.get_child(i) as Button
-						child.button_pressed = resource.get(property[&"name"]) & (1 << i) > 0
-				_add_resource_update_callback(resource, update_function)
+						var flag_value := child.get_meta(&"flag_value") as int
+						child.button_pressed = resource.get(property[&"name"]) & flag_value > 0
+				_register_callback(resource.changed, update_function)
 				resource.changed.connect(update_function)
 				return input
 			elif property[&"hint"] == PROPERTY_HINT_ENUM:
@@ -280,7 +280,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 					resource.set(property[&"name"], values.find(index)))
 				var update_function := func() -> void:
 					input.selected = values.find(resource.get(property[&"name"]))
-				_add_resource_update_callback(resource, update_function)
+				_register_callback(resource.changed, update_function)
 				resource.changed.connect(update_function)
 				return input
 			else:
@@ -296,7 +296,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 					resource.set(property[&"name"], value))
 				var update_function := func() -> void:
 					input.set_value_no_signal(resource.get(property[&"name"]))
-				_add_resource_update_callback(resource, update_function)
+				_register_callback(resource.changed, update_function)
 				resource.changed.connect(update_function)
 				return input
 		TYPE_STRING, TYPE_STRING_NAME:
@@ -310,7 +310,40 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 					resource.set(property[&"name"], input.text))
 				var update_function := func() -> void:
 					input.text = resource.get(property[&"name"])
-				_add_resource_update_callback(resource, update_function)
+				_register_callback(resource.changed, update_function)
+				resource.changed.connect(update_function)
+				return input
+			elif property[&"hint"] == PROPERTY_HINT_FILE_PATH:
+				var input := FilesystemAccessButton.new()
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.file_mode = EditorFileDialog.FileMode.FILE_MODE_OPEN_FILE
+				input.access = EditorFileDialog.Access.ACCESS_RESOURCES
+				input.path = str(value)
+				input.path_changed.connect(func() -> void:
+					resource.set(property[&"name"], input.path))
+				var update_function := func() -> void:
+					input.path = resource.get(property[&"name"])
+					input.line_edit.text = resource.get(property[&"name"])
+				_register_callback(resource.changed, update_function)
+				resource.changed.connect(update_function)
+				return input
+			elif property[&"hint"] == PROPERTY_HINT_FILE:
+				var input := FilesystemAccessButton.new()
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.file_mode = EditorFileDialog.FileMode.FILE_MODE_OPEN_FILE
+				input.access = EditorFileDialog.Access.ACCESS_RESOURCES
+				input.store_uid = true
+				input.path = ResourceUID.ensure_path(value)
+				input.path_changed.connect(func() -> void:
+					resource.set(property[&"name"], ResourceUID.path_to_uid(input.path)))
+				var update_function := func() -> void:
+					var path := ResourceUID.ensure_path(resource.get(property[&"name"]))
+					input.path = path
+					if input.show_uid:
+						input.line_edit.text = ResourceUID.path_to_uid(input.path)
+					else:
+						input.line_edit.text = input.path
+				_register_callback(resource.changed, update_function)
 				resource.changed.connect(update_function)
 				return input
 			elif property[&"hint"] == PROPERTY_HINT_DIR:
@@ -323,14 +356,94 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 					resource.set(property[&"name"], input.path))
 				var update_function := func() -> void:
 					input.path = resource.get(property[&"name"])
-				_add_resource_update_callback(resource, update_function)
+					input.line_edit.text = resource.get(property[&"name"])
+				_register_callback(resource.changed, update_function)
 				resource.changed.connect(update_function)
 				return input
-			#elif property[&"hint"] == PROPERTY_HINT_FILE: # TODO
-			#elif property[&"hint"] == PROPERTY_HINT_DIR: # TODO
-			#elif property[&"hint"] == PROPERTY_HINT_FILE_PATH: # TODO
-			#elif property[&"hint"] == PROPERTY_HINT_GLOBAL_FILE: # TODO
-			#elif property[&"hint"] == PROPERTY_HINT_GLOBAL_DIR: # TODO
+			elif property[&"hint"] == PROPERTY_HINT_GLOBAL_FILE:
+				var input := FilesystemAccessButton.new()
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.file_mode = EditorFileDialog.FileMode.FILE_MODE_OPEN_FILE
+				input.access = EditorFileDialog.Access.ACCESS_FILESYSTEM
+				input.path = str(value)
+				input.path_changed.connect(func() -> void:
+					resource.set(property[&"name"], input.path))
+				var update_function := func() -> void:
+					input.path = resource.get(property[&"name"])
+					input.line_edit.text = resource.get(property[&"name"])
+				_register_callback(resource.changed, update_function)
+				resource.changed.connect(update_function)
+				return input
+			elif property[&"hint"] == PROPERTY_HINT_GLOBAL_DIR:
+				var input := FilesystemAccessButton.new()
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.file_mode = EditorFileDialog.FileMode.FILE_MODE_OPEN_DIR
+				input.access = EditorFileDialog.Access.ACCESS_FILESYSTEM
+				input.path = str(value)
+				input.path_changed.connect(func() -> void:
+					resource.set(property[&"name"], input.path))
+				var update_function := func() -> void:
+					input.path = resource.get(property[&"name"])
+					input.line_edit.text = resource.get(property[&"name"])
+				_register_callback(resource.changed, update_function)
+				resource.changed.connect(update_function)
+				return input
+			elif property[&"hint"] == PROPERTY_HINT_SAVE_FILE:
+				# TODO: Test this!
+				var input := FilesystemAccessButton.new()
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.file_mode = EditorFileDialog.FileMode.FILE_MODE_SAVE_FILE
+				input.access = EditorFileDialog.Access.ACCESS_RESOURCES
+				input.path = str(value)
+				input.path_changed.connect(func() -> void:
+					resource.set(property[&"name"], input.path))
+				var update_function := func() -> void:
+					input.path = resource.get(property[&"name"])
+					input.line_edit.text = resource.get(property[&"name"])
+				_register_callback(resource.changed, update_function)
+				resource.changed.connect(update_function)
+				return input
+			elif property[&"hint"] == PROPERTY_HINT_GLOBAL_SAVE_FILE:
+				# TODO: Test this!
+				var input := FilesystemAccessButton.new()
+				input.custom_minimum_size.x = _get_column_width(property)
+				input.file_mode = EditorFileDialog.FileMode.FILE_MODE_SAVE_FILE
+				input.access = EditorFileDialog.Access.ACCESS_FILESYSTEM
+				input.path = str(value)
+				input.path_changed.connect(func() -> void:
+					resource.set(property[&"name"], input.path))
+				var update_function := func() -> void:
+					input.path = resource.get(property[&"name"])
+					input.line_edit.text = resource.get(property[&"name"])
+				_register_callback(resource.changed, update_function)
+				resource.changed.connect(update_function)
+				return input
+			
+			elif property[&"hint"] == PROPERTY_HINT_INPUT_NAME:
+				if (property[&"hint_string"] as String).contains("loose_mode"):
+					var input := InputActionButton.new()
+					input.custom_minimum_size.x = _get_column_width(property)
+					input.include_system = property[&"hint_string"].contains("show_builtin")
+					input.action = value
+					input.action_changed.connect(func() -> void:
+						resource.set(property[&"name"], input.action))
+					var update_function := func() -> void:
+						input.action = resource.get(property[&"name"])
+						input.line_edit.text = resource.get(property[&"name"])
+					_register_callback(resource.changed, update_function)
+					resource.changed.connect(update_function)
+					return input
+				else:
+					var input := OptionButton.new()
+					input.custom_minimum_size.x = _get_column_width(property)
+					input.fit_to_longest_item = false
+					input.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+					for action in InputMap.get_actions():
+						if _is_system_input_action(action) and not (property[&"hint_string"] as String).contains("show_builtin"):
+							continue
+						input.add_item(action)
+					return input
+			
 			else:
 				var input := LineEdit.new()
 				input.text = str(value)
@@ -340,7 +453,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 					resource.set(property[&"name"], value))
 				var update_function := func() -> void:
 					input.text = resource.get(property[&"name"])
-				_add_resource_update_callback(resource, update_function)
+				_register_callback(resource.changed, update_function)
 				resource.changed.connect(update_function)
 				return input
 		TYPE_COLOR:
@@ -353,7 +466,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				resource.set(property[&"name"], value))
 			var update_function := func() -> void:
 				input.color = resource.get(property[&"name"])
-			_add_resource_update_callback(resource, update_function)
+			_register_callback(resource.changed, update_function)
 			resource.changed.connect(update_function)
 			return input
 		TYPE_VECTOR2, TYPE_VECTOR2I:
@@ -374,7 +487,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 			var update_function := func() -> void:
 				x_input.value = resource.get(property[&"name"]).x
 				y_input.value = resource.get(property[&"name"]).y
-			_add_resource_update_callback(resource, update_function)
+			_register_callback(resource.changed, update_function)
 			resource.changed.connect(update_function)
 			input.add_child(x_input)
 			input.add_child(y_input)
@@ -404,7 +517,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				x_input.value = resource.get(property[&"name"]).x
 				y_input.value = resource.get(property[&"name"]).y
 				z_input.value = resource.get(property[&"name"]).z
-			_add_resource_update_callback(resource, update_function)
+			_register_callback(resource.changed, update_function)
 			resource.changed.connect(update_function)
 			input.add_child(x_input)
 			input.add_child(y_input)
@@ -442,7 +555,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				y_input.value = resource.get(property[&"name"]).y
 				z_input.value = resource.get(property[&"name"]).z
 				w_input.value = resource.get(property[&"name"]).w
-			_add_resource_update_callback(resource, update_function)
+			_register_callback(resource.changed, update_function)
 			resource.changed.connect(update_function)
 			input.add_child(x_input)
 			input.add_child(y_input)
@@ -481,7 +594,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 				y_input.value = resource.get(property[&"name"]).position.y
 				w_input.value = resource.get(property[&"name"]).size.x
 				h_input.value = resource.get(property[&"name"]).size.y
-			_add_resource_update_callback(resource, update_function)
+			_register_callback(resource.changed, update_function)
 			resource.changed.connect(update_function)
 			input.add_child(x_input)
 			input.add_child(y_input)
@@ -518,7 +631,7 @@ func _get_input_field(property: Dictionary, resource: Resource) -> Control:
 					resource.set(property[&"name"], path), valid_types, current_value))
 			var update_function := func() -> void:
 				input.text = resource.get(property[&"name"])
-			_add_resource_update_callback(resource, update_function)
+			_register_callback(resource.changed, update_function)
 			resource.changed.connect(update_function)
 			return input
 		TYPE_ARRAY:
@@ -736,6 +849,10 @@ func is_type(desired_type: Script, current_type: Script) -> bool:
 	if not current_type:
 		return false
 	return true if current_type == desired_type else is_type(desired_type, current_type.get_base_script())
+
+
+func _is_system_input_action(action: StringName) -> bool:
+	return action.begins_with("ui") or action.begins_with("spatial_editor")
 
 
 func _save_all() -> void:
